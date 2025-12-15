@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>신발끈 조합 찾기 (CDN Test)</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; padding: 50px; }
+        select { padding: 10px; margin: 10px; font-size: 16px; }
+        #preview-container { margin-top: 30px; min-height: 400px; }
+        img { max-width: 500px; border: 1px solid #ddd; border-radius: 10px; }
+        .stats { color: red; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>👟 신발끈 조합 찾기 (CDN 성능 테스트)</h1>
+    <p>원하는 조합을 선택하면 CDN에서 이미지를 가져옵니다.</p>
+
+    <div>
+        <select id="brand"><option value="">브랜드 선택</option></select>
+        <select id="model" disabled><option value="">모델 선택</option></select>
+        <select id="color" disabled><option value="">신발 색상</option></select>
+        <select id="lace" disabled><option value="">신발끈 색상</option></select>
+    </div>
+
+    <div id="preview-container">
+        <p>선택 완료 시 이미지가 표시됩니다.</p>
+        <img id="shoeImage" style="display:none;" alt="신발 이미지">
+        <p id="loadTime" class="stats"></p>
+        <p id="currentSrc" style="color:gray; font-size:12px;"></p>
+    </div>
+
+    <script>
+        const CDN_BASE_URL = ""; 
+
+        const els = {
+            brand: document.getElementById('brand'),
+            model: document.getElementById('model'),
+            color: document.getElementById('color'),
+            lace: document.getElementById('lace'),
+            img: document.getElementById('shoeImage'),
+            time: document.getElementById('loadTime'),
+            src: document.getElementById('currentSrc')
+        };
+
+        let shoeData = {};
+
+        // 1. JSON 데이터 로드
+        fetch('/data.json')
+            .then(res => res.json())
+            .then(data => {
+                shoeData = data;
+                // 브랜드 목록 초기화
+                Object.keys(data).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.text = data[key].name;
+                    els.brand.appendChild(option);
+                });
+            });
+
+        // 2. 브랜드 변경 시 -> 해당 브랜드의 모델 목록 로드
+        els.brand.addEventListener('change', function() {
+            const brand = this.value;
+            resetSelects(['model', 'color', 'lace']);
+            
+            if (brand && shoeData[brand].products) {
+                // products 객체의 키(모델명)들을 가져옴
+                const models = Object.keys(shoeData[brand].products);
+                populateSelect(els.model, models);
+                els.model.disabled = false;
+            }
+        });
+
+        // 3. 모델 변경 시 -> 해당 모델의 신발 색상 목록 로드
+        els.model.addEventListener('change', function() {
+            const brand = els.brand.value;
+            const model = this.value;
+            resetSelects(['color', 'lace']);
+            
+            if (brand && model) {
+                // 선택한 모델 하위의 키(색상)들을 가져옴
+                const colors = Object.keys(shoeData[brand].products[model]);
+                populateSelect(els.color, colors);
+                els.color.disabled = false;
+            }
+        });
+
+        // 4. 색상 변경 시 -> 해당 색상 신발의 끈(Lace) 목록 로드
+        els.color.addEventListener('change', function() {
+            const brand = els.brand.value;
+            const model = els.model.value;
+            const color = this.value;
+            resetSelects(['lace']);
+            
+            if (brand && model && color) {
+                // 해당 색상에 정의된 끈 배열을 가져옴
+                const laces = shoeData[brand].products[model][color];
+                populateSelect(els.lace, laces);
+                els.lace.disabled = false;
+            }
+        });
+
+        // 5. 끈 색상 변경 (최종 선택) -> 이미지 로드
+        els.lace.addEventListener('change', function() {
+            if (this.value) {
+                loadImage();
+            }
+        });
+
+        function populateSelect(element, items) {
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.text = item.toUpperCase();
+                element.appendChild(option);
+            });
+        }
+
+        function resetSelects(ids) {
+            ids.forEach(id => {
+                const el = els[id];
+                el.innerHTML = '<option value="">선택해주세요</option>';
+                el.disabled = true;
+            });
+            els.img.style.display = 'none';
+            els.time.innerText = '';
+            els.src.innerText = '';
+        }
+
+        function loadImage() {
+            const brand = els.brand.value;
+            const model = els.model.value;
+            const color = els.color.value;
+            const lace = els.lace.value;
+
+            // 이미지가 확실히 존재하는 조합만 선택되었으므로 404 에러가 발생하지 않음
+            const filename = `${brand}_${model}_${color}_${lace}.webp`;
+            const fullUrl = `${CDN_BASE_URL}/images/${filename}`;
+
+            const startTime = performance.now();
+
+            els.img.src = fullUrl;
+            els.img.style.display = 'block';
+            els.src.innerText = `요청 URL: ${fullUrl}`;
+
+            els.img.onload = () => {
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                els.time.innerText = `⏱ 로딩 시간: ${duration} ms`;
+            };
+
+            els.img.onerror = () => {
+                els.time.innerText = "❌ 이미지를 찾을 수 없습니다.";
+                els.img.style.display = 'none';
+            };
+        }
+    </script>
+</body>
+</html>

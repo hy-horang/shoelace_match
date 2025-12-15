@@ -1,0 +1,27 @@
+{
+  "nike": {
+    "name": "Nike",
+    "products": {
+      "airforce": {
+        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "black": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "brown": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple", "brown"]
+      },
+      "jordan": {
+        "blue": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "red": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
+      },
+      "airmax90": {
+        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
+      }
+    }
+  },
+  "adidas": {
+    "name": "Adidas",
+    "products": {
+      "samba": {
+        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
+      }
+    }
+  }
+}
