@@ -184,7 +184,7 @@
         let shoeData = {};
 
         // 1. 데이터 로드
-        fetch('/data.json')
+        fetch(`${CDN_BASE_URL}/data.json`)
             .then(res => {
                 if (!res.ok) throw new Error('Load failed');
                 return res.json();
