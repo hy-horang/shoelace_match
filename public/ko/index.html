@@ -2,32 +2,169 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>신발끈 조합 찾기 (CDN Test)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신발끈 조합 찾기</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; text-align: center; padding: 50px; }
-        select { padding: 10px; margin: 10px; font-size: 16px; }
-        #preview-container { margin-top: 30px; min-height: 400px; }
-        img { max-width: 500px; border: 1px solid #ddd; border-radius: 10px; }
-        .stats { color: red; font-weight: bold; margin-top: 10px; }
+        :root {
+            --bg-color: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --preview-bg: #f8f9fa;
+            --accent-color: #4a90e2;
+            --text-color: #333;
+            --border-radius: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            height: 100vh; /* 화면 전체 높이 사용 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* 불필요한 스크롤 방지 */
+        }
+
+        /* 메인 컨테이너: 좌우 분할을 위한 Flexbox */
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh; /* 뷰포트 높이의 85%만 사용 */
+            max-height: 700px; /* 너무 길어지지 않게 제한 */
+            background-color: var(--sidebar-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* 왼쪽: 컨트롤 패널 */
+        .sidebar {
+            flex: 0 0 320px; /* 고정 너비 */
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 2;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+        }
+
+        .sidebar h1 {
+            font-size: 22px;
+            margin: 0 0 8px 0;
+            font-weight: 700;
+        }
+
+        .sidebar p.subtitle {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        select {
+            padding: 12px 15px;
+            font-size: 14px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            background-color: #fff;
+            width: 100%;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+        }
+
+        select:focus { border-color: var(--accent-color); }
+        select:disabled { background-color: #f5f5f5; color: #aaa; cursor: default; }
+
+        /* 오른쪽: 미리보기 영역 */
+        .preview-area {
+            flex: 1;
+            background-color: var(--preview-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 이미지 반응형 처리: 화면 높이에 맞춤 */
+        img#shoeImage {
+            max-width: 90%;
+            max-height: 70%; /* 이미지 높이 제한 (스크롤 방지 핵심) */
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .placeholder-text {
+            color: #adb5bd;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .info-bar {
+            margin-top: 15px;
+            text-align: center;
+            min-height: 40px;
+        }
+
+        .stats { font-size: 13px; font-weight: 600; color: var(--accent-color); margin-bottom: 4px; }
+        .url-info { font-size: 10px; color: #aaa; }
+
+        /* 모바일 대응 (화면이 좁을 때만 세로 배치) */
+        @media (max-width: 768px) {
+            body { height: auto; padding: 20px; overflow-y: auto; }
+            .container { flex-direction: column; height: auto; max-height: none; }
+            .sidebar { width: 100%; padding: 30px; flex: none; }
+            .preview-area { min-height: 300px; padding: 40px 20px; }
+            img#shoeImage { max-height: 300px; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>👟 신발끈 조합 찾기 (CDN 성능 테스트)</h1>
-    <p>원하는 조합을 선택하면 CDN에서 이미지를 가져옵니다.</p>
+    <div class="container">
+        <div class="sidebar">
+            <h1>👟 신발끈 매칭</h1>
+            <p class="subtitle">브랜드와 색상을 선택하여<br>나만의 조합을 미리 확인해보세요.</p>
 
-    <div>
-        <select id="brand"><option value="">브랜드 선택</option></select>
-        <select id="model" disabled><option value="">모델 선택</option></select>
-        <select id="color" disabled><option value="">신발 색상</option></select>
-        <select id="lace" disabled><option value="">신발끈 색상</option></select>
-    </div>
+            <div class="input-group">
+                <select id="brand"><option value="">브랜드 선택</option></select>
+                <select id="model" disabled><option value="">모델 선택</option></select>
+                <select id="color" disabled><option value="">신발 색상</option></select>
+                <select id="lace" disabled><option value="">신발끈 색상</option></select>
+            </div>
+        </div>
 
-    <div id="preview-container">
-        <p>선택 완료 시 이미지가 표시됩니다.</p>
-        <img id="shoeImage" style="display:none;" alt="신발 이미지">
-        <p id="loadTime" class="stats"></p>
-        <p id="currentSrc" style="color:gray; font-size:12px;"></p>
+        <div class="preview-area">
+            <span id="placeholderText" class="placeholder-text">옵션을 선택하면<br>이미지가 표시됩니다.</span>
+            <img id="shoeImage" alt="신발 이미지">
+            
+            <div class="info-bar">
+                <div id="loadTime" class="stats"></div>
+                <div id="currentSrc" class="url-info"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -40,120 +177,105 @@
             lace: document.getElementById('lace'),
             img: document.getElementById('shoeImage'),
             time: document.getElementById('loadTime'),
-            src: document.getElementById('currentSrc')
+            src: document.getElementById('currentSrc'),
+            placeholder: document.getElementById('placeholderText')
         };
 
         let shoeData = {};
 
-        // 1. JSON 데이터 로드
+        // 1. 데이터 로드
         fetch('/data.json')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Load failed');
+                return res.json();
+            })
             .then(data => {
                 shoeData = data;
-                // 브랜드 목록 초기화
-                Object.keys(data).forEach(key => {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.text = data[key].name;
-                    els.brand.appendChild(option);
-                });
-            });
+                Object.keys(data).forEach(key => addOption(els.brand, key, data[key].name));
+            })
+            .catch(err => console.error(err));
 
-        // 2. 브랜드 변경 시 -> 해당 브랜드의 모델 목록 로드
+        // 2. 이벤트 리스너
         els.brand.addEventListener('change', function() {
             const brand = this.value;
             resetSelects(['model', 'color', 'lace']);
-            
-            if (brand && shoeData[brand].products) {
-                // products 객체의 키(모델명)들을 가져옴
-                const models = Object.keys(shoeData[brand].products);
-                populateSelect(els.model, models);
+            if (brand && shoeData[brand]?.products) {
+                Object.keys(shoeData[brand].products).forEach(m => addOption(els.model, m, m.toUpperCase()));
                 els.model.disabled = false;
             }
         });
 
-        // 3. 모델 변경 시 -> 해당 모델의 신발 색상 목록 로드
         els.model.addEventListener('change', function() {
             const brand = els.brand.value;
             const model = this.value;
             resetSelects(['color', 'lace']);
-            
             if (brand && model) {
-                // 선택한 모델 하위의 키(색상)들을 가져옴
-                const colors = Object.keys(shoeData[brand].products[model]);
-                populateSelect(els.color, colors);
+                Object.keys(shoeData[brand].products[model]).forEach(c => addOption(els.color, c, c.toUpperCase()));
                 els.color.disabled = false;
             }
         });
 
-        // 4. 색상 변경 시 -> 해당 색상 신발의 끈(Lace) 목록 로드
         els.color.addEventListener('change', function() {
             const brand = els.brand.value;
             const model = els.model.value;
             const color = this.value;
             resetSelects(['lace']);
-            
             if (brand && model && color) {
-                // 해당 색상에 정의된 끈 배열을 가져옴
-                const laces = shoeData[brand].products[model][color];
-                populateSelect(els.lace, laces);
+                shoeData[brand].products[model][color].forEach(l => addOption(els.lace, l, l.toUpperCase()));
                 els.lace.disabled = false;
             }
         });
 
-        // 5. 끈 색상 변경 (최종 선택) -> 이미지 로드
         els.lace.addEventListener('change', function() {
-            if (this.value) {
-                loadImage();
-            }
+            if (this.value) loadImage();
         });
 
-        function populateSelect(element, items) {
-            items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.text = item.toUpperCase();
-                element.appendChild(option);
-            });
+        // 유틸리티 함수
+        function addOption(el, val, txt) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = txt;
+            el.appendChild(opt);
         }
 
         function resetSelects(ids) {
+            const labels = { 'model': '모델 선택', 'color': '신발 색상', 'lace': '신발끈 색상' };
             ids.forEach(id => {
-                const el = els[id];
-                el.innerHTML = '<option value="">선택해주세요</option>';
-                el.disabled = true;
+                els[id].innerHTML = `<option value="">${labels[id]}</option>`;
+                els[id].disabled = true;
             });
             els.img.style.display = 'none';
+            els.placeholder.style.display = 'block';
             els.time.innerText = '';
             els.src.innerText = '';
         }
 
         function loadImage() {
-            const brand = els.brand.value;
-            const model = els.model.value;
-            const color = els.color.value;
-            const lace = els.lace.value;
-
-            // 이미지가 확실히 존재하는 조합만 선택되었으므로 404 에러가 발생하지 않음
-            const filename = `${brand}_${model}_${color}_${lace}.webp`;
+            const { brand, model, color, lace } = els;
+            const filename = `${brand.value}_${model.value}_${color.value}_${lace.value}.webp`;
             const fullUrl = `${CDN_BASE_URL}/images/${filename}`;
 
             const startTime = performance.now();
-
-            els.img.src = fullUrl;
-            els.img.style.display = 'block';
-            els.src.innerText = `요청 URL: ${fullUrl}`;
+            
+            // 로딩 상태 처리
+            els.placeholder.style.display = 'none';
+            els.time.innerText = '로딩 중...';
 
             els.img.onload = () => {
-                const endTime = performance.now();
-                const duration = (endTime - startTime).toFixed(2);
-                els.time.innerText = `⏱ 로딩 시간: ${duration} ms`;
+                const duration = (performance.now() - startTime).toFixed(2);
+                els.time.innerText = `⚡ ${duration} ms`;
+                els.src.innerText = fullUrl;
+                els.img.style.display = 'block';
             };
 
             els.img.onerror = () => {
-                els.time.innerText = "❌ 이미지를 찾을 수 없습니다.";
+                els.time.innerText = "이미지 없음";
+                els.placeholder.style.display = 'block';
+                els.placeholder.innerText = "이미지를 찾을 수 없습니다";
                 els.img.style.display = 'none';
             };
+
+            els.img.src = fullUrl;
         }
     </script>
 </body>
