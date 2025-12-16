@@ -20,7 +20,21 @@
     "name": "Adidas",
     "products": {
       "samba": {
-        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
+        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "black" : ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
+      },
+      "gazelle" :{
+        "black" : ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "brown" : ["white", "black", "red", "orange", "yellow", "green", "blue", "purple", "brown"]
+      }
+    }
+  },
+  "newbalance" : {
+    "name": "NewBalance",
+    "products": {
+      "530": {
+        "white": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"],
+        "black": ["white", "black", "red", "orange", "yellow", "green", "blue", "purple"]
       }
     }
   }
