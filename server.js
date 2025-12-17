@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 
     else if (lang === 'fr') { res.redirect('/fr'); } // 프랑스어는
 
-    else if (lang === 'du') { res.redirect('/du'); } // 독일어는
+    else if (lang === 'de') { res.redirect('/de'); } // 독일어는
 
     else if (lang === 'en') { res.redirect('/en'); } // 영어는
 
